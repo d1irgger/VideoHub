@@ -34,29 +34,6 @@ python kkp1.py
 
 实际界面比文字更惊艳 — 运行即见。
 
-📂 仓库结构
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-目录说明VideoHubWeb版本...推荐 — 当前 Web 版主程序VideoHub早期原生UI版本...早期 Tkinter 原生界面web实现论证...技术验证与实验代码
 
 🛠️ 技术栈
 Python · OpenCV · 多线程 · 内置 HTTP Server · 原生玻璃态前端
