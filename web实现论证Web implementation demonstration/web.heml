@@ -1,0 +1,988 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>文件中心</title>
+<style>
+/* 基础重置 */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "Helvetica Neue", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+    background: linear-gradient(180deg, #fafafc 0%, #f2f2f7 100%);
+    padding: 60px 20px;
+    color: #1d1d1f;
+    line-height: 1.25;
+    min-height: 100vh;
+}
+
+.container {
+    max-width: 1400px;
+    margin: 0 auto;
+    background: rgba(255, 255, 255, 0.7);
+    backdrop-filter: blur(35px) saturate(1.8);
+    -webkit-backdrop-filter: blur(35px) saturate(1.8);
+    border-radius: 28px;
+    padding: 60px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1), 0 8px 24px rgba(0, 0, 0, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.85);
+}
+
+/* 头部区域 */
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 44px;
+    flex-wrap: wrap;
+    gap: 22px;
+}
+
+.title-area {
+    display: flex;
+    align-items: center;
+    gap: 24px;
+}
+
+.title {
+    font-size: 38px;
+    font-weight: 700;
+    letter-spacing: -0.03em;
+    color: #1d1d1f;
+}
+
+.control-btn {
+    height: 42px;
+    padding: 0 22px;
+    border-radius: 14px;
+    font-size: 15px;
+    font-weight: 500;
+    border: none;
+    background: linear-gradient(135deg, #059669, #06a775);
+    color: #fff;
+    cursor: pointer;
+    box-shadow: 0 4px 14px rgba(5, 150, 105, 0.2);
+    transition: all 0.26s cubic-bezier(0.25, 1, 0.5, 1);
+}
+
+.control-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 22px rgba(5, 150, 105, 0.25);
+}
+
+.control-btn:active {
+    transform: translateY(0);
+}
+
+.control-btn.gray {
+    background: linear-gradient(135deg, #86868b, #949499);
+    box-shadow: 0 4px 14px rgba(134, 134, 139, 0.2);
+}
+
+/* iOS 液体玻璃搜索框 —— 已彻底移除毛玻璃 + 点击效果 */
+.search-box {
+    position: relative;
+    width: 380px;
+}
+
+.search-input {
+    width: 100%;
+    height: 42px;
+    padding: 0 20px 0 44px;
+    border-radius: 16px;
+    border: none;
+    background: #E5E7EB; /* 实心干净背景，无模糊 */
+    font-size: 15px;
+    color: #1d1d1f;
+    outline: none;
+    transition: none; /* 移除动画 */
+    -webkit-appearance: none;
+    appearance: none;
+}
+
+/* ========== 已彻底移除点击聚焦效果 ========== */
+.search-input:focus {
+    background: #E5E7EB;
+    box-shadow: none;
+    outline: none;
+    border: none;
+}
+
+.search-input::placeholder {
+    color: #86868b;
+    opacity: 0.8;
+}
+
+.search-icon {
+    position: absolute;
+    left: 16px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 17px;
+    color: #000;
+    pointer-events: none;
+    font-weight: 900;
+    line-height: 1;
+}
+
+.clear-search {
+    position: absolute;
+    right: 16px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 16px;
+    color: #86868b;
+    cursor: pointer;
+    display: none;
+    width: 26px;
+    height: 26px;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    transition: all 0.15s;
+}
+
+.search-input:not(:placeholder-shown) + .clear-search {
+    display: flex;
+}
+
+.clear-search:hover {
+    background: rgba(0, 0, 0, 0.1);
+}
+
+.last-update {
+    font-size: 16px;
+    font-weight: 500;
+    color: #86868b;
+}
+
+/* 液体玻璃快捷方式 */
+.web-shortcuts {
+    display: flex;
+    gap: 18px;
+    margin-bottom: 48px;
+    flex-wrap: wrap;
+}
+
+.shortcut-card {
+    flex: 1;
+    min-width: 150px;
+    height: 84px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255, 255, 255, 0.65);
+    backdrop-filter: blur(30px) saturate(2);
+    -webkit-backdrop-filter: blur(30px) saturate(2);
+    border-radius: 20px;
+    text-decoration: none;
+    color: #007aff;
+    font-size: 16px;
+    font-weight: 500;
+    transition: all 0.28s ease;
+    border: 1px solid rgba(255, 255, 255, 0.8);
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.04);
+}
+
+.shortcut-card:hover {
+    background: rgba(255, 255, 255, 0.9);
+    transform: translateY(-4px);
+    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.08);
+}
+
+/* 文件列表 - 液体玻璃 */
+.file-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.file-row {
+    display: flex;
+    align-items: center;
+    height: 70px;
+    padding: 0 28px;
+    background: rgba(255, 255, 255, 0.55);
+    backdrop-filter: blur(30px) saturate(1.8);
+    -webkit-backdrop-filter: blur(30px) saturate(1.8);
+    border-radius: 18px;
+    gap: 22px;
+    transition: all 0.24s ease;
+    border: 1px solid rgba(255, 255, 255, 0.75);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
+}
+
+.file-row:hover {
+    background: rgba(255, 255, 255, 0.85);
+    transform: translateX(3px);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.06);
+}
+
+.file-index {
+    font-size: 15px;
+    color: #86868b;
+    min-width: 44px;
+    text-align: center;
+    font-weight: 400;
+}
+
+.file-name {
+    flex: 1;
+    font-size: 16px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-weight: 500;
+}
+
+/* 融合渐变按钮 + 苹果液体玻璃 */
+.btn-web {
+    height: 42px;
+    padding: 0 22px;
+    border-radius: 14px;
+    font-size: 15px;
+    font-weight: 500;
+    border: none;
+    background: linear-gradient(135deg, #007aff, #0086ff);
+    color: #fff;
+    cursor: pointer;
+    transition: all 0.24s ease;
+    box-shadow: 0 5px 15px rgba(0, 122, 255, 0.24);
+}
+
+.btn-web:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 22px rgba(0, 122, 255, 0.3);
+}
+
+.btn-web:active {
+    transform: translateY(0);
+}
+
+.btn-mp4 {
+    background: linear-gradient(135deg, #43a047, #4caf50);
+    box-shadow: 0 5px 15px rgba(67, 160, 71, 0.24);
+}
+
+/* 液体玻璃分页 */
+.pagination {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+    margin-top: 44px;
+}
+
+.page-btn {
+    width: 46px;
+    height: 46px;
+    border-radius: 16px;
+    border: none;
+    background: rgba(255, 255, 255, 0.65);
+    backdrop-filter: blur(25px) saturate(1.6);
+    -webkit-backdrop-filter: blur(25px) saturate(1.6);
+    color: #007aff;
+    font-size: 16px;
+    cursor: pointer;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.24s ease;
+    border: 1px solid rgba(255, 255, 255, 0.8);
+}
+
+.page-btn.active {
+    background: linear-gradient(135deg, #007aff, #0086ff);
+    color: #fff;
+    box-shadow: 0 6px 16px rgba(0, 122, 255, 0.25);
+}
+
+.page-btn:hover:not(:disabled) {
+    background: rgba(255, 255, 255, 0.9);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 14px rgba(0, 0, 0, 0.06);
+}
+
+.page-btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
+#pageNumbers,
+#pageNumbersFolder {
+    display: flex;
+    gap: 8px;
+}
+
+.page-info {
+    font-size: 14px;
+    color: #86868b;
+    margin-left: 16px;
+    font-weight: 400;
+}
+
+.no-result {
+    text-align: center;
+    padding: 60px 0;
+    color: #86868b;
+    font-size: 16px;
+}
+
+/* 页面切换动画 */
+.page {
+    display: none;
+}
+
+.page.active {
+    display: block;
+    animation: fadeIn 0.35s cubic-bezier(0.25, 1, 0.5, 1);
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(12px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* 底部联系区 */
+.telegram-section {
+    margin-top: 48px;
+    padding-top: 32px;
+    border-top: 1px solid rgba(235, 235, 240, 0.8);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 20px;
+}
+
+.telegram-title {
+    font-size: 18px;
+    font-weight: 600;
+    color: #1d1d1f;
+}
+
+.telegram-icons {
+    display: flex;
+    gap: 16px;
+}
+
+.telegram-btn {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    height: 44px;
+    padding: 0 22px;
+    border-radius: 14px;
+    background: rgba(255, 255, 255, 0.65);
+    backdrop-filter: blur(25px) saturate(1.6);
+    -webkit-backdrop-filter: blur(25px) saturate(1.6);
+    color: #0088cc;
+    text-decoration: none;
+    font-size: 15px;
+    font-weight: 500;
+    transition: all 0.24s ease;
+    border: 1px solid rgba(255, 255, 255, 0.8);
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08);
+}
+.telegram-btn:hover {
+    background: rgba(255, 255, 255, 0.9);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
+}
+
+.telegram-icon {
+    font-size: 18px;
+}
+
+.telegram-label {
+    color: #1d1d1f;
+}
+
+/* 响应式 */
+@media (max-width: 768px) {
+    .container {
+        padding: 32px 20px;
+        border-radius: 24px;
+    }
+    .title {
+        font-size: 32px;
+    }
+    .search-box {
+        width: 100%;
+    }
+    .shortcut-card {
+        min-width: 130px;
+        height: 76px;
+    }
+}
+</style>
+</head>
+
+<body>
+<div class="container">
+    <div class="header">
+        <div class="title-area">
+            <div class="title">文件中心</div>
+            <div class="search-box">
+                <span class="search-icon">🔎</span>
+                <input type="text" class="search-input" id="searchInput" placeholder="搜索文件名...">
+                <span class="clear-search" id="clearSearch">✕</span>
+            </div>
+            <button class="control-btn" id="toggleBtn">📂 切换到本地文件浏览</button>
+        </div>
+        <div class="last-update" id="statusText">正在获取文件修改时间…</div>
+    </div>
+
+    <!-- 在线资源列表 -->
+    <div class="page active" id="pageStatic">
+        <div class="web-shortcuts" id="shortcutContainer"></div>
+        <div class="file-list" id="fileListStatic"></div>
+        <div class="pagination">
+            <button class="page-btn" id="firstPage">«</button>
+            <button class="page-btn" id="prev">&lt;</button>
+            <div id="pageNumbers"></div>
+            <button class="page-btn" id="next">&gt;</button>
+            <button class="page-btn" id="lastPage">»</button>
+            <div class="page-info" id="pageInfo"></div>
+        </div>
+    </div>
+
+    <!-- 本地文件浏览 -->
+    <div class="page" id="pageFolder">
+        <div style="display:flex;gap:12px;margin-bottom:30px;">
+            <button class="control-btn" onclick="selectAndListFolder()">📂 选择本地文件夹</button>
+        </div>
+        <div class="file-list" id="fileListFolder"></div>
+        <div class="pagination">
+            <button class="page-btn" id="firstPageFolder">«</button>
+            <button class="page-btn" id="prevFolder">&lt;</button>
+            <div id="pageNumbersFolder"></div>
+            <button class="page-btn" id="nextFolder">&gt;</button>
+            <button class="page-btn" id="lastPageFolder">»</button>
+            <div class="page-info" id="pageInfoFolder"></div>
+        </div>
+    </div>
+
+    <div class="telegram-section">
+        <div class="telegram-title">联系我们</div>
+        <div class="telegram-icons">
+            <a href="https://t.me/+D3YSmx3Bsco5ZTM1" target="_blank" class="telegram-btn">
+                <span class="telegram-icon">✈️</span>
+                <span class="telegram-label">群组</span>
+            </a>
+            <a href="https://t.me/harrytims" target="_blank" class="telegram-btn">
+                <span class="telegram-icon">✈️</span>
+                <span class="telegram-label">夜舟</span>
+            </a>
+            <a href="https://t.me/d111irgg" target="_blank" class="telegram-btn">
+                <span class="telegram-icon">✈️</span>
+                <span class="telegram-label">孤江</span>
+            </a>
+        </div>
+    </div>
+</div>
+
+<script>
+// ==============================================
+// 【用户可自由编辑配置】
+// ==============================================
+const SHORTCUT_HTML_TEXT = `
+<a href="https://baidu.com">百度一下</a>
+<a href="https://bing.com">必应搜索</a>
+<a href="https://google.com">谷歌搜索</a>
+<a href="https://youtube.com">油管视频</a>
+`;
+
+const FILE_HTML_TEXT = `
+<a href="https://baidu.com">文件一</a>
+<a href="https://baidu.com">文件二</a>
+<a href="https://baidu.com">文件三</a>
+<a href="https://baidu.com">文件四</a>
+<a href="https://baidu.com">文件五</a>
+`;
+
+// ==============================================
+// 全局配置
+// ==============================================
+const CONFIG = {
+    PAGE_SIZE: 10,
+    MAX_PAGE_BUTTONS: 13,
+    DEBOUNCE_DELAY: 100,
+    VIDEO_URL_REVOKE_TIME: 300000,
+    FILE_URL_REVOKE_TIME: 30000
+};
+
+// ==============================================
+// DOM 元素缓存（只查询一次）
+// ==============================================
+const DOM = {
+    pageStatic: document.getElementById('pageStatic'),
+    pageFolder: document.getElementById('pageFolder'),
+    toggleBtn: document.getElementById('toggleBtn'),
+    statusText: document.getElementById('statusText'),
+    searchInput: document.getElementById('searchInput'),
+    clearSearch: document.getElementById('clearSearch'),
+    shortcutContainer: document.getElementById('shortcutContainer'),
+    fileListStatic: document.getElementById('fileListStatic'),
+    fileListFolder: document.getElementById('fileListFolder')
+};
+
+// ==============================================
+// 全局状态管理
+// ==============================================
+const appState = {
+    isLocalMode: false,
+    online: {
+        currentPage: 1,
+        shortcuts: [],
+        files: [],
+        searchKeyword: '',
+        filteredFiles: []
+    },
+    local: {
+        currentDirHandle: null,
+        allFiles: [],
+        filteredFiles: [],
+        currentPage: 1
+    }
+};
+
+// ==============================================
+// 工具函数
+// ==============================================
+const utils = {
+    /**
+     * 防抖函数：减少高频操作性能消耗
+     */
+    debounce(func, delay = CONFIG.DEBOUNCE_DELAY) {
+        let timeoutId;
+        return (...args) => {
+            clearTimeout(timeoutId);
+            timeoutId = setTimeout(() => func.apply(this, args), delay);
+        };
+    },
+
+    /**
+     * 解析 HTML 字符串为链接对象
+     */
+    parseLinkHtml(html) {
+        const tempDiv = document.createElement('div');
+        tempDiv.innerHTML = html;
+        const link = tempDiv.querySelector('a');
+        
+        return link ? {
+            title: link.textContent.trim(),
+            url: link.href
+        } : { title: '', url: '#' };
+    },
+
+    /**
+     * 清理文件名：隐藏 .mp4 后缀
+     */
+    getDisplayName(fileName) {
+        const lowerName = fileName.toLowerCase();
+        return lowerName.endsWith('.mp4') ? fileName.slice(0, -4) : fileName;
+    },
+
+    /**
+     * 获取格式化日期：YYYY-MM-DD
+     */
+    formatDate() {
+        const now = new Date();
+        const year = now.getFullYear();
+        const month = String(now.getMonth() + 1).padStart(2, '0');
+        const day = String(now.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
+    }
+};
+
+// ==============================================
+// 页面切换
+// ==============================================
+function togglePageMode() {
+    appState.isLocalMode = !appState.isLocalMode;
+
+    if (appState.isLocalMode) {
+        DOM.pageStatic.classList.remove('active');
+        DOM.pageFolder.classList.add('active');
+        DOM.toggleBtn.textContent = '📄 切换到在线资源列表';
+        DOM.statusText.textContent = '本地文件浏览模式';
+    } else {
+        DOM.pageFolder.classList.remove('active');
+        DOM.pageStatic.classList.add('active');
+        DOM.toggleBtn.textContent = '📂 切换到本地文件浏览';
+        initOnlinePage();
+    }
+}
+
+// ==============================================
+// 在线资源列表
+// ==============================================
+function loadOnlineData() {
+    // 加载快捷方式
+    appState.online.shortcuts = SHORTCUT_HTML_TEXT
+        .split('\n')
+        .map(line => line.trim())
+        .filter(line => line.startsWith('<a href'))
+        .map(utils.parseLinkHtml);
+
+    // 加载文件列表
+    appState.online.files = FILE_HTML_TEXT
+        .split('\n')
+        .map(line => line.trim())
+        .filter(line => line.startsWith('<a href'))
+        .map(utils.parseLinkHtml);
+}
+
+function renderShortcuts() {
+    DOM.shortcutContainer.innerHTML = '';
+    appState.online.shortcuts.forEach(item => {
+        const link = document.createElement('a');
+        link.className = 'shortcut-card';
+        link.href = item.url;
+        link.target = '_blank';
+        link.textContent = item.title;
+        DOM.shortcutContainer.appendChild(link);
+    });
+}
+
+function renderOnlineFileList() {
+    const fileList = appState.online.searchKeyword
+        ? appState.online.filteredFiles
+        : appState.online.files;
+
+    const startIndex = (appState.online.currentPage - 1) * CONFIG.PAGE_SIZE;
+    const pageFiles = fileList.slice(startIndex, startIndex + CONFIG.PAGE_SIZE);
+    
+    DOM.fileListStatic.innerHTML = '';
+
+    if (fileList.length === 0) {
+        DOM.fileListStatic.innerHTML = '<div class="no-result">无结果</div>';
+        renderOnlinePagination();
+        return;
+    }
+
+    pageFiles.forEach((file, index) => {
+        const row = document.createElement('div');
+        row.className = 'file-row';
+        row.innerHTML = `
+            <div class="file-index">${startIndex + index + 1}</div>
+            <div class="file-name">${file.title}</div>
+            <a href="${file.url}" target="_blank">
+                <button class="btn-web">打开</button>
+            </a>
+        `;
+        DOM.fileListStatic.appendChild(row);
+    });
+
+    renderOnlinePagination();
+}
+
+function renderOnlinePagination() {
+    const fileList = appState.online.searchKeyword
+        ? appState.online.filteredFiles
+        : appState.online.files;
+
+    const totalPages = Math.ceil(fileList.length / CONFIG.PAGE_SIZE);
+    const pageNumbersEl = document.getElementById('pageNumbers');
+    pageNumbersEl.innerHTML = '';
+
+    const halfVisible = Math.floor(CONFIG.MAX_PAGE_BUTTONS / 2);
+    let startPage = Math.max(1, appState.online.currentPage - halfVisible);
+    let endPage = Math.min(totalPages, startPage + CONFIG.MAX_PAGE_BUTTONS - 1);
+
+    for (let i = startPage; i <= endPage; i++) {
+        const btn = document.createElement('button');
+        btn.className = `page-btn ${i === appState.online.currentPage ? 'active' : ''}`;
+        btn.textContent = i;
+        btn.onclick = () => {
+            appState.online.currentPage = i;
+            renderOnlineFileList();
+        };
+        pageNumbersEl.appendChild(btn);
+    }
+
+    // 更新状态文本
+    document.getElementById('pageInfo').textContent =
+        `第${appState.online.currentPage}页/共${totalPages}页 · ${fileList.length}项`;
+
+    // 按钮禁用状态
+    document.getElementById('firstPage').disabled = appState.online.currentPage === 1;
+    document.getElementById('prev').disabled = appState.online.currentPage === 1;
+    document.getElementById('next').disabled = appState.online.currentPage >= totalPages;
+    document.getElementById('lastPage').disabled = appState.online.currentPage >= totalPages;
+}
+
+function initOnlinePage() {
+    loadOnlineData();
+    renderShortcuts();
+    renderOnlineFileList();
+    DOM.statusText.textContent = `在线资源列表 · ${utils.formatDate()}`;
+}
+
+// ==============================================
+// 本地文件浏览
+// ==============================================
+async function selectAndListFolder() {
+    try {
+        const dirHandle = await window.showDirectoryPicker();
+        appState.local.currentDirHandle = dirHandle;
+        await loadLocalFiles();
+        searchLocalFiles('');
+    } catch (err) {
+        console.log('文件夹选择已取消');
+    }
+}
+
+async function loadLocalFiles() {
+    appState.local.allFiles = [];
+    for await (const fileEntry of appState.local.currentDirHandle.values()) {
+        if (fileEntry.kind !== 'file') continue;
+
+        const fileName = fileEntry.name.toLowerCase();
+        if (fileName.includes('文件中心') || fileName.endsWith('.html')) continue;
+
+        appState.local.allFiles.push(fileEntry);
+    }
+
+    // 按文件名自然排序
+    appState.local.allFiles.sort((a, b) => 
+        a.name.localeCompare(b.name, undefined, { numeric: true, sensitivity: 'base' })
+    );
+}
+
+// 搜索本地文件（防抖）
+const searchLocalFiles = utils.debounce((keyword) => {
+    if (!appState.local.currentDirHandle) return;
+
+    appState.local.filteredFiles = keyword
+        ? appState.local.allFiles.filter(file =>
+            file.name.toLowerCase().includes(keyword.toLowerCase())
+        )
+        : [...appState.local.allFiles];
+
+    appState.local.currentPage = 1;
+    renderLocalFileList();
+});
+
+function renderLocalFileList() {
+    const fileList = appState.local.filteredFiles;
+    const startIndex = (appState.local.currentPage - 1) * CONFIG.PAGE_SIZE;
+    const pageFiles = fileList.slice(startIndex, startIndex + CONFIG.PAGE_SIZE);
+
+    DOM.fileListFolder.innerHTML = '';
+
+    if (fileList.length === 0) {
+        DOM.fileListFolder.innerHTML = '<div class="no-result">无结果</div>';
+        renderLocalPagination();
+        return;
+    }
+
+    pageFiles.forEach((file) => {
+        const isVideo = file.name.toLowerCase().endsWith('.mp4');
+        const displayName = utils.getDisplayName(file.name);
+
+        const row = document.createElement('div');
+        row.className = 'file-row';
+        // ========== 已删除序号 ==========
+        row.innerHTML = `
+            <div class="file-name">${displayName}</div>
+            <button class="btn-web ${isVideo ? 'btn-mp4' : ''}" 
+                    onclick="openLocalFile('${encodeURIComponent(file.name)}')">
+                ${isVideo ? '播放视频' : '打开'}
+            </button>
+        `;
+        DOM.fileListFolder.appendChild(row);
+    });
+
+    renderLocalPagination();
+}
+
+function renderLocalPagination() {
+    const totalCount = appState.local.filteredFiles.length;
+    const totalPages = Math.ceil(totalCount / CONFIG.PAGE_SIZE);
+    const pageNumbersEl = document.getElementById('pageNumbersFolder');
+    pageNumbersEl.innerHTML = '';
+
+    const halfVisible = Math.floor(CONFIG.MAX_PAGE_BUTTONS / 2);
+    let startPage = Math.max(1, appState.local.currentPage - halfVisible);
+    let endPage = Math.min(totalPages, startPage + CONFIG.MAX_PAGE_BUTTONS - 1);
+
+    for (let i = startPage; i <= endPage; i++) {
+        const btn = document.createElement('button');
+        btn.className = `page-btn ${i === appState.local.currentPage ? 'active' : ''}`;
+        btn.textContent = i;
+        btn.onclick = () => {
+            appState.local.currentPage = i;
+            renderLocalFileList();
+        };
+        pageNumbersEl.appendChild(btn);
+    }
+
+    document.getElementById('pageInfoFolder').textContent =
+        `第${appState.local.currentPage}页/共${totalPages}页 · ${totalCount}项`;
+
+    document.getElementById('firstPageFolder').disabled = appState.local.currentPage === 1;
+    document.getElementById('prevFolder').disabled = appState.local.currentPage === 1;
+    document.getElementById('nextFolder').disabled = appState.local.currentPage >= totalPages;
+    document.getElementById('lastPageFolder').disabled = appState.local.currentPage >= totalPages;
+}
+
+// ==============================================
+// 打开本地文件
+// ==============================================
+async function openLocalFile(encodedFileName) {
+    try {
+        const fileName = decodeURIComponent(encodedFileName);
+        const fileHandle = await appState.local.currentDirHandle.getFileHandle(fileName);
+        const file = await fileHandle.getFile();
+        const fileUrl = URL.createObjectURL(file);
+
+        // 视频播放
+        if (file.type.startsWith('video/') || file.name.toLowerCase().endsWith('.mp4')) {
+            const player = window.open('', '_blank');
+            player.document.write(`
+                <html>
+                <head>
+                    <meta charset="utf-8">
+                    <title>视频播放</title>
+                    <style>
+                        body{margin:0;background:#000;display:flex;align-items:center;justify-content:center;height:100vh}
+                        video{max-width:100%;max-height:100%}
+                    </style>
+                </head>
+                <body>
+                    <video src="${fileUrl}" controls autoplay></video>
+                </body>
+                </html>
+            `);
+            player.document.close();
+            setTimeout(() => URL.revokeObjectURL(fileUrl), CONFIG.VIDEO_URL_REVOKE_TIME);
+            return;
+        }
+
+        // 普通文件下载
+        const a = document.createElement('a');
+        a.href = fileUrl;
+        a.download = file.name;
+        a.target = '_blank';
+        a.click();
+        setTimeout(() => URL.revokeObjectURL(fileUrl), CONFIG.FILE_URL_REVOKE_TIME);
+    } catch (err) {
+        alert('文件打开失败：' + err.message);
+    }
+}
+
+// ==============================================
+// 全局搜索
+// ==============================================
+function handleGlobalSearch(e) {
+    const keyword = e.target.value.trim();
+    if (appState.isLocalMode) {
+        searchLocalFiles(keyword);
+    } else {
+        appState.online.searchKeyword = keyword;
+        appState.online.filteredFiles = appState.online.files.filter(file =>
+            file.title.toLowerCase().includes(keyword.toLowerCase())
+        );
+        appState.online.currentPage = 1;
+        renderOnlineFileList();
+    }
+}
+
+function clearGlobalSearch() {
+    DOM.searchInput.value = '';
+    if (appState.isLocalMode) {
+        searchLocalFiles('');
+    } else {
+        appState.online.searchKeyword = '';
+        renderOnlineFileList();
+    }
+}
+
+// ==============================================
+// 分页事件绑定
+// ==============================================
+function bindPaginationEvents() {
+    // 在线分页
+    document.getElementById('firstPage').onclick = () => {
+        appState.online.currentPage = 1;
+        renderOnlineFileList();
+    };
+
+    document.getElementById('lastPage').onclick = () => {
+        const total = Math.ceil(appState.online.files.length / CONFIG.PAGE_SIZE);
+        appState.online.currentPage = total;
+        renderOnlineFileList();
+    };
+
+    document.getElementById('prev').onclick = () => {
+        if (appState.online.currentPage > 1) {
+            appState.online.currentPage--;
+            renderOnlineFileList();
+        }
+    };
+
+    document.getElementById('next').onclick = () => {
+        const total = Math.ceil(appState.online.files.length / CONFIG.PAGE_SIZE);
+        if (appState.online.currentPage < total) {
+            appState.online.currentPage++;
+            renderOnlineFileList();
+        }
+    };
+
+    // 本地分页
+    document.getElementById('firstPageFolder').onclick = () => {
+        appState.local.currentPage = 1;
+        renderLocalFileList();
+    };
+
+    document.getElementById('lastPageFolder').onclick = () => {
+        const total = Math.ceil(appState.local.filteredFiles.length / CONFIG.PAGE_SIZE);
+        appState.local.currentPage = total;
+        renderLocalFileList();
+    };
+
+    document.getElementById('prevFolder').onclick = () => {
+        if (appState.local.currentPage > 1) {
+            appState.local.currentPage--;
+            renderLocalFileList();
+        }
+    };
+
+    document.getElementById('nextFolder').onclick = () => {
+        const total = Math.ceil(appState.local.filteredFiles.length / CONFIG.PAGE_SIZE);
+        if (appState.local.currentPage < total) {
+            appState.local.currentPage++;
+            renderLocalFileList();
+        }
+    };
+}
+
+// ==============================================
+// 初始化应用
+// ==============================================
+function initApp() {
+    // 事件绑定
+    DOM.toggleBtn.onclick = togglePageMode;
+    DOM.searchInput.addEventListener('input', handleGlobalSearch);
+    DOM.clearSearch.onclick = clearGlobalSearch;
+
+    // 绑定分页
+    bindPaginationEvents();
+
+    // 初始化在线页面
+    initOnlinePage();
+}
+
+// 启动
+document.addEventListener('DOMContentLoaded', initApp);
+</script>
+</body>
+</html>
